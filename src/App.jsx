@@ -12,7 +12,14 @@ const App = () => {
     personService
       .getAll()
       .then(initialPersons => {
-        setPersons(initialPersons);
+        setPersons(initialPersons || []);
+      })
+      .catch(error => {
+        console.error('Failed to fetch persons:', error);
+        setNotification({ message: 'Failed to fetch persons from server', type: 'error' });
+        setTimeout(() => {
+          setNotification({ message: null, type: '' });
+        }, 5000);
       });
   }, []);
 
@@ -31,6 +38,7 @@ const App = () => {
         personService
           .update(existingPerson.id, personObject)
           .then(returnedPerson => {
+            console.log('Updated person:', returnedPerson); 
             setPersons(persons.map(person => person.id !== existingPerson.id ? person : returnedPerson));
             setNotification({ message: `Updated ${newName}`, type: 'success' });
             setTimeout(() => {
@@ -38,6 +46,7 @@ const App = () => {
             }, 5000);
           })
           .catch(error => {
+            console.error('Failed to update person:', error);
             setNotification({ message: `Information of ${newName} has already been removed from server`, type: 'error' });
             setTimeout(() => {
               setNotification({ message: null, type: '' });
@@ -50,6 +59,13 @@ const App = () => {
         .then(newPerson => {
           setPersons(persons.concat(newPerson));
           setNotification({ message: `Added ${newName}`, type: 'success' });
+          setTimeout(() => {
+            setNotification({ message: null, type: '' });
+          }, 5000);
+        })
+        .catch(error => {
+          console.error('Failed to add person:', error);
+          setNotification({ message: 'Failed to add person to server', type: 'error' });
           setTimeout(() => {
             setNotification({ message: null, type: '' });
           }, 5000);
@@ -80,6 +96,7 @@ const App = () => {
           }, 5000);
         })
         .catch(error => {
+          console.error('Failed to delete person:', error);
           setNotification({ message: `Information of ${person.name} has already been removed from server`, type: 'error' });
           setTimeout(() => {
             setNotification({ message: null, type: '' });
@@ -105,7 +122,7 @@ const App = () => {
       </form>
       <h2>Numbers</h2>
       <ul>
-        {persons.map(person =>
+        {Array.isArray(persons) && persons.map(person =>
           <li key={person.id}>
             {person.name} {person.number}
             <button onClick={() => deletePerson(person.id)}>delete</button>
